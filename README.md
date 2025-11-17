@@ -1,6 +1,10 @@
-# Yushan Platform Frontend
+# Yushan Microservices Frontend
 
-> 🌟 **Frontend application for Yushan Platform** - A gamified web novel reading platform that transforms reading into an engaging, social experience.
+> 🌟 **Frontend application for Yushan Platform (Phase 2 - Microservices)** - A gamified web novel reading platform that transforms reading into an engaging, social experience.
+
+## 📋 Overview
+
+This is the frontend for the microservices architecture of Yushan Platform (Phase 2). This frontend connects to the API Gateway and communicates with all microservices through the gateway.
 
 ## 🚀 Tech Stack
 
@@ -74,8 +78,8 @@ src/
 
 ```bash
 # Clone the repository
-git clone https://github.com/maugus0/yushan-platform-frontend.git
-cd yushan-frontend
+git clone https://github.com/phutruonnttn/yushan-microservices-frontend.git
+cd yushan-microservices-frontend
 
 # Install dependencies
 npm install
@@ -211,6 +215,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Create React App Documentation](https://facebook.github.io/create-react-app/docs/getting-started)
 - [React Documentation](https://reactjs.org/)
 - [Deployment Guide](https://facebook.github.io/create-react-app/docs/deployment)
+
+## 🔗 Links
+
+- **API Gateway**: [yushan-microservices-api-gateway](https://github.com/phutruonnttn/yushan-microservices-api-gateway)
+- **Admin Dashboard**: [yushan-microservices-admin-dashboard](https://github.com/phutruonnttn/yushan-microservices-admin-dashboard)
+- **Platform Documentation**: [yushan-platform-docs](https://github.com/phutruonnttn/yushan-platform-docs) - Complete documentation for all phases
+- **Phase 2 Architecture**: See [Phase 2 Microservices Architecture](https://github.com/phutruonnttn/yushan-platform-docs/blob/main/docs/phase2-microservices/PHASE2_MICROSERVICES_ARCHITECTURE.md)
 
 ---
 
