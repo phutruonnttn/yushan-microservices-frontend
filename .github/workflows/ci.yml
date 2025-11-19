@@ -213,7 +213,7 @@ jobs:
 
   deploy-pages:
     name: Deploy GitHub Pages (gh-pages CLI)
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [docker-build]
     permissions:
@@ -373,6 +373,7 @@ jobs:
 
   zap-dast:
     name: OWASP ZAP Baseline Scan (Production)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [deploy-pages]
     steps:
@@ -398,7 +399,8 @@ jobs:
   reports-summary:
     name: Generate CI Summary & Collect Reports
     runs-on: ubuntu-latest
-    needs: [zap-dast]
+    needs: [docker-build]
+    if: always()
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
