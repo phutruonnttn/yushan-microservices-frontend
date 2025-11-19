@@ -211,50 +211,16 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  zap-dast:
-    name: OWASP ZAP Baseline Scan
-    runs-on: ubuntu-latest
-    needs: [docker-build]
-    steps:
-      - name: Run temporary container
-        run: |
-          docker run -d --rm -p 8080:80 --name yushan-fe ghcr.io/${{ github.repository }}:${{ github.sha }}
-          # wait for container
-          for i in {1..30}; do
-            if curl -fsS http://localhost:8080 >/dev/null; then echo "App up"; break; fi
-            sleep 2;
-          done
-
-      - name: OWASP ZAP Baseline
-        run: |
-          docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -t "http://host.docker.internal:8080" \
-            -J zap.json -w zap.md -r zap.html -a || true
-
-      - name: Stop container
-        if: always()
-        run: docker stop yushan-fe || true
-
-      - name: Upload ZAP report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-baseline
-          path: |
-            zap.html
-            zap.json
-            zap.md
-
   deploy-pages:
     name: Deploy GitHub Pages (gh-pages CLI)
     if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     runs-on: ubuntu-latest
-    needs: [zap-dast]
+    needs: [docker-build]
     permissions:
       contents: write
     environment:
       name: github-pages
-      url: https://maugus0.github.io/yushan-platform-frontend/
+      url: https://phutruonnttn.github.io/yushan-microservices-frontend/
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -298,7 +264,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          URL="https://maugus0.github.io/yushan-platform-frontend/"
+          URL="https://phutruonnttn.github.io/yushan-microservices-frontend/"
           ORIGIN=$(echo "$URL" | sed -E 's#^(https?://[^/]+)/.*#\1#')
           echo "Checking $URL ..."
           for i in {1..24}; do
@@ -352,7 +318,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          export URL="https://maugus0.github.io/yushan-platform-frontend/"
+          export URL="https://phutruonnttn.github.io/yushan-microservices-frontend/"
           cat > smoke.js << 'JS'
           const { chromium } = require('playwright');
           (async () => {
@@ -361,7 +327,7 @@ jobs:
             const page = await context.newPage();
             const consoleErrors = [];
             page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
-            const targetUrl = process.env.URL || 'https://maugus0.github.io/yushan-platform-frontend/';
+            const targetUrl = process.env.URL || 'https://phutruonnttn.github.io/yushan-microservices-frontend/';
             await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
             // wait for some content to render under #root
             try {
@@ -404,6 +370,30 @@ jobs:
           git config user.email "github-actions@github.com"
           git reset --hard "$PREV_GHPAGES_SHA"
           git push origin gh-pages --force
+
+  zap-dast:
+    name: OWASP ZAP Baseline Scan (Production)
+    runs-on: ubuntu-latest
+    needs: [deploy-pages]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline (scan GitHub Pages)
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "https://phutruonnttn.github.io/yushan-microservices-frontend/" \
+            -J zap.json -w zap.md -r zap.html -a || true
+
+      - name: Upload ZAP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-baseline
+          path: |
+            zap.html
+            zap.json
+            zap.md
 
   reports-summary:
     name: Generate CI Summary & Collect Reports
