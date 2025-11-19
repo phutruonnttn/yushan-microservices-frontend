@@ -399,7 +399,7 @@ jobs:
   reports-summary:
     name: Generate CI Summary & Collect Reports
     runs-on: ubuntu-latest
-    needs: [docker-build]
+    needs: [docker-build, deploy-pages, zap-dast]
     if: always()
     steps:
       - name: Download all artifacts
