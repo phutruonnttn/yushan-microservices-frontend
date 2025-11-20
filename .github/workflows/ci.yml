@@ -237,6 +237,8 @@ jobs:
         run: npm ci
 
       - name: Build app
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
         run: npm run build
 
       - name: Record current gh-pages HEAD (for rollback)
@@ -259,6 +261,68 @@ jobs:
           npx --yes gh-pages -d build -b gh-pages \
             -r https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git \
             -u "github-actions <github-actions@github.com>"
+
+      - name: Get deployed commit SHA
+        id: get-sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYED_SHA=$(git ls-remote --heads origin gh-pages | awk '{print $1}' | head -n1)
+          echo "DEPLOYED_SHA=$DEPLOYED_SHA" >> "$GITHUB_OUTPUT"
+          echo "Deployed commit SHA: $DEPLOYED_SHA"
+
+      - name: Wait for GitHub Pages deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYED_SHA="${{ steps.get-sha.outputs.DEPLOYED_SHA }}"
+          URL="https://phutruonnttn.github.io/yushan-microservices-frontend/"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          echo "Waiting for GitHub Pages to deploy commit $DEPLOYED_SHA..."
+          echo "Checking deployment status..."
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking if GitHub Pages is deployed..."
+            
+            # Check if site is accessible
+            if ! curl -fsSLI "$URL" > /dev/null 2>&1; then
+              echo "Site not accessible yet, waiting..."
+              sleep 10
+              continue
+            fi
+            
+            # Check GitHub Pages deployment status via API
+            API_RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pages/builds/latest" 2>/dev/null || echo "")
+            
+            if [ -n "$API_RESPONSE" ] && echo "$API_RESPONSE" | grep -q '"status"'; then
+              DEPLOYMENT_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4 || echo "unknown")
+              
+              if [ "$DEPLOYMENT_STATUS" = "built" ]; then
+                echo "✅ GitHub Pages deployment completed (status: built)!"
+                exit 0
+              fi
+              
+              echo "Deployment status: $DEPLOYMENT_STATUS (waiting...)"
+            else
+              # Fallback: Check if we can access the site and it's responding
+              if curl -fsSL "$URL" > /dev/null 2>&1; then
+                echo "Site is accessible, assuming deployment is ready..."
+                # Give it a bit more time for CDN propagation
+                sleep 5
+                exit 0
+              fi
+              echo "Could not fetch deployment status, waiting..."
+            fi
+            sleep 10
+          done
+
+          echo "⚠️  GitHub Pages deployment check timeout after $MAX_ATTEMPTS attempts"
+          echo "Continuing with health check - it will verify deployment status"
 
       - name: Health check GitHub Pages
         shell: bash
