@@ -447,7 +447,7 @@ jobs:
         run: |
           docker run --rm -v $(pwd):/zap/wrk/:rw -w /zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t "https://phutruonnttn.github.io/yushan-microservices-frontend/" \
-            -J /zap/wrk/zap.json -w /zap/wrk/zap.md -r /zap/wrk/zap.html -a || true
+            -J zap.json -w zap.md -r zap.html -a || true
 
           # Verify files were created
           if [ -f zap.html ] && [ -f zap.json ] && [ -f zap.md ]; then
