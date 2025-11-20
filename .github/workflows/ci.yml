@@ -259,7 +259,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          
+
           # Deploy using gh-pages CLI
           npx --yes gh-pages -d build -b gh-pages \
             -r https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git \
