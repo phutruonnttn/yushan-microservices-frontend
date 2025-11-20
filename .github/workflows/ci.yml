@@ -256,11 +256,33 @@ jobs:
           GIT_COMMITTER_NAME: github-actions
           GIT_COMMITTER_EMAIL: github-actions@github.com
         run: |
+          set -euo pipefail
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
+          # Deploy using gh-pages CLI
           npx --yes gh-pages -d build -b gh-pages \
             -r https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git \
-            -u "github-actions <github-actions@github.com>"
+            -u "github-actions <github-actions@github.com>" || {
+            echo "gh-pages CLI failed or skipped, forcing manual push..."
+            # Fallback: manual push to ensure deployment
+            git fetch origin gh-pages:gh-pages || true
+            if git show-ref --verify --quiet refs/heads/gh-pages; then
+              git checkout gh-pages
+            else
+              git checkout -b gh-pages origin/gh-pages || git checkout -b gh-pages
+            fi
+            rm -rf ./*
+            cp -r ../build/* .
+            git add -A
+            if git diff --staged --quiet; then
+              echo "No changes detected, creating empty commit to trigger deployment..."
+              git commit --allow-empty -m "Deploy: ${{ github.sha }} [forced]"
+            else
+              git commit -m "Deploy: ${{ github.sha }}"
+            fi
+            git push origin gh-pages --force
+          }
 
       - name: Get deployed commit SHA
         id: get-sha
@@ -298,7 +320,29 @@ jobs:
             
             echo "✅ gh-pages branch has correct commit SHA: $DEPLOYED_SHA"
             
-            # Step 2: Wait a bit for GitHub Pages to process the new commit
+            # Step 2: Check if "pages build and deployment" workflow exists and completed
+            echo "Checking for GitHub Pages workflow..."
+            WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=gh-pages&per_page=5" 2>/dev/null || echo "")
+            
+            if [ -n "$WORKFLOW_RUNS" ]; then
+              # Check if there's a "pages build and deployment" workflow
+              if echo "$WORKFLOW_RUNS" | grep -q "pages build and deployment"; then
+                echo "✅ Found 'pages build and deployment' workflow"
+                # Try to find the latest one
+                PAGES_RUN=$(echo "$WORKFLOW_RUNS" | grep -B 10 "pages build and deployment" | head -n 20 || echo "")
+                if [ -n "$PAGES_RUN" ]; then
+                  STATUS=$(echo "$PAGES_RUN" | grep -o '"status":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+                  CONCLUSION=$(echo "$PAGES_RUN" | grep -o '"conclusion":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+                  echo "  Status: $STATUS, Conclusion: $CONCLUSION"
+                fi
+              else
+                echo "ℹ️  'pages build and deployment' workflow not found (this is normal if Pages uses GitHub Actions)"
+              fi
+            fi
+            
+            # Step 3: Wait a bit for GitHub Pages to process the new commit
             echo "Waiting for GitHub Pages to process the deployment..."
             sleep 15
             
