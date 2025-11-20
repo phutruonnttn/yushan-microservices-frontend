@@ -21,18 +21,22 @@ const Footer = () => {
   const socialLinks = [
     {
       icon: <GithubOutlined />,
-      href: 'https://github.com/maugus0/yushan-platform-frontend/',
+      href: 'https://github.com/phutruonnttn/yushan-microservices-frontend/',
       label: 'GitHub',
     },
     {
       icon: <TwitterOutlined />,
-      href: 'https://github.com/maugus0/yushan-backend/',
+      href: 'https://github.com/phutruonnttn/yushan-microservices-backend/',
       label: 'Twitter',
     },
-    { icon: <LinkedinOutlined />, href: 'https://www.linkedin.com/in/maugus0/', label: 'LinkedIn' },
+    {
+      icon: <LinkedinOutlined />,
+      href: 'https://www.linkedin.com/in/phutruonnttn/',
+      label: 'LinkedIn',
+    },
     {
       icon: <FacebookOutlined />,
-      href: 'https://github.com/maugus0/yushan-admin/',
+      href: 'https://github.com/phutruonnttn/yushan-microservices-admin-dashboard/',
       label: 'Facebook',
     },
   ];

@@ -6,7 +6,7 @@ import { message } from 'antd';
 // Get the correct path with basename for GitHub Pages
 const getRedirectPath = (path) => {
   // Use the same basename as the app (matches package.json homepage)
-  const basename = process.env.NODE_ENV === 'production' ? '/yushan-platform-frontend' : '';
+  const basename = process.env.NODE_ENV === 'production' ? '/yushan-microservices-frontend' : '';
   return `${basename}${path}`;
 };
 
