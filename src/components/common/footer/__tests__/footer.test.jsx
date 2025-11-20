@@ -56,7 +56,7 @@ test('renders footer sections, social links and contact info', () => {
 
   const twitter = screen.getByLabelText('Twitter');
   expect(twitter).toBeInTheDocument();
-  expect(twitter.getAttribute('href')).toContain('yushan-backend');
+  expect(twitter.getAttribute('href')).toContain('yushan-microservices-backend');
 
   // contact info
   const phoneLink = screen.getByText('+65 8063-6867');
