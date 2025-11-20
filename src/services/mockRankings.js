@@ -190,9 +190,9 @@ export function getMockNovels() {
       {
         id: 42,
         uuid: '12e32f36-1a7f-40bf-8c8f-8b0eec28d9ce',
-        title: 'Maugus',
+        title: 'Yushan Story',
         authorId: '7f6824c7-f82c-44a9-b965-dc4d9bb9bd38',
-        authorUsername: 'Maugus0',
+        authorUsername: 'phutruonnttn',
         avgRating: 3.0,
         viewCnt: 15,
         voteCnt: 1,
@@ -253,7 +253,7 @@ export function getMockNovels() {
       {
         id: 41,
         uuid: '35bda700-ab84-4cbe-8a44-bde9dfa61817',
-        title: 'Maugus',
+        title: 'Yushan Story',
         authorId: '5045b2cf-efc8-45de-ad6a-c7ef68e7db90',
         authorUsername: 'admin',
         avgRating: 0.0,
@@ -263,13 +263,13 @@ export function getMockNovels() {
           'https://yushan-content.sgp1.cdn.digitaloceanspaces.com/covers/novel-1761512000094-1761512000188_25acf11a-edab-4679-8366-76d9d4d6f211.jpeg',
         categoryId: 19,
         categoryName: 'Slice of Life',
-        synopsis: 'A great story told by Maugus',
+        synopsis: 'A great story told by Yushan',
         isCompleted: false,
       },
       {
         id: 40,
         uuid: '4a02a25c-e9a7-480e-811b-b59e7d9925de',
-        title: 'Maugus',
+        title: 'Yushan Story',
         authorId: '5045b2cf-efc8-45de-ad6a-c7ef68e7db90',
         authorUsername: 'admin',
         avgRating: 0.0,
@@ -279,7 +279,7 @@ export function getMockNovels() {
           'https://yushan-content.sgp1.cdn.digitaloceanspaces.com/covers/novel-1761511997345-1761511997449_306f8081-48e7-4bd9-ac55-d0b6b6fdbcc5.jpeg',
         categoryId: 19,
         categoryName: 'Slice of Life',
-        synopsis: 'A great story told by Maugus',
+        synopsis: 'A great story told by Yushan',
         isCompleted: false,
       },
       {
@@ -743,7 +743,7 @@ export function getMockReaders() {
       {
         uuid: '7f6824c7-f82c-44a9-b965-dc4d9bb9bd38',
         email: 'ahanjaiswal12@gmail.com',
-        username: 'Maugus0',
+        username: 'phutruonnttn',
         avatarUrl: 'user_female.png',
         profileDetail: 'Hi I am ahan',
         birthday: '2013-10-17',
@@ -973,7 +973,7 @@ export function getMockWriters() {
       },
       {
         uuid: '7f6824c7-f82c-44a9-b965-dc4d9bb9bd38',
-        username: 'Maugus0',
+        username: 'phutruonnttn',
         avatarUrl: null,
         novelNum: 1,
         totalViewCnt: 15,

@@ -1,8 +1,8 @@
 {
-  "name": "yushan-platform-frontend",
+  "name": "yushan-microservices-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://maugus0.github.io/yushan-platform-frontend",
+  "homepage": "https://phutruonnttn.github.io/yushan-microservices-frontend",
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
     "@testing-library/dom": "^10.4.1",
