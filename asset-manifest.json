@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/yushan-microservices-frontend/static/css/main.fa3ae357.css",
-    "main.js": "/yushan-microservices-frontend/static/js/main.1f801e39.js",
+    "main.js": "/yushan-microservices-frontend/static/js/main.ec1cfe76.js",
     "static/media/icon1.png": "/yushan-microservices-frontend/static/media/icon1.de48fdb3b795cce0a896.png",
     "static/media/logo.png": "/yushan-microservices-frontend/static/media/logo.3dac8368101d1f145224.png",
     "static/media/userprofilecover.png": "/yushan-microservices-frontend/static/media/userprofilecover.3a0f75795081371fde1e.png",
@@ -14,10 +14,10 @@
     "static/media/user_male.png": "/yushan-microservices-frontend/static/media/user_male.59b848e45364f11c9906.png",
     "index.html": "/yushan-microservices-frontend/index.html",
     "main.fa3ae357.css.map": "/yushan-microservices-frontend/static/css/main.fa3ae357.css.map",
-    "main.1f801e39.js.map": "/yushan-microservices-frontend/static/js/main.1f801e39.js.map"
+    "main.ec1cfe76.js.map": "/yushan-microservices-frontend/static/js/main.ec1cfe76.js.map"
   },
   "entrypoints": [
     "static/css/main.fa3ae357.css",
-    "static/js/main.1f801e39.js"
+    "static/js/main.ec1cfe76.js"
   ]
 }
