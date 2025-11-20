@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/yushan-microservices-frontend/static/css/main.fa3ae357.css",
+    "main.js": "/yushan-microservices-frontend/static/js/main.1f801e39.js",
+    "static/media/icon1.png": "/yushan-microservices-frontend/static/media/icon1.de48fdb3b795cce0a896.png",
+    "static/media/logo.png": "/yushan-microservices-frontend/static/media/logo.3dac8368101d1f145224.png",
+    "static/media/userprofilecover.png": "/yushan-microservices-frontend/static/media/userprofilecover.3a0f75795081371fde1e.png",
+    "static/media/icon3.jpg": "/yushan-microservices-frontend/static/media/icon3.6cda3eda60492dd0cca3.jpg",
+    "static/media/icon2.jpg": "/yushan-microservices-frontend/static/media/icon2.9b96e7370c61b1d0acdb.jpg",
+    "static/media/user.png": "/yushan-microservices-frontend/static/media/user.e6436ee0e3508e207bc4.png",
+    "static/media/badge.png": "/yushan-microservices-frontend/static/media/badge.be0466e5c2cf3c0359d4.png",
+    "static/media/user_female.png": "/yushan-microservices-frontend/static/media/user_female.912e042a7a7ca4b68a84.png",
+    "static/media/novel_default.png": "/yushan-microservices-frontend/static/media/novel_default.f15ad647d7bcb27e575c.png",
+    "static/media/user_male.png": "/yushan-microservices-frontend/static/media/user_male.59b848e45364f11c9906.png",
+    "index.html": "/yushan-microservices-frontend/index.html",
+    "main.fa3ae357.css.map": "/yushan-microservices-frontend/static/css/main.fa3ae357.css.map",
+    "main.1f801e39.js.map": "/yushan-microservices-frontend/static/js/main.1f801e39.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fa3ae357.css",
+    "static/js/main.1f801e39.js"
+  ]
+}
