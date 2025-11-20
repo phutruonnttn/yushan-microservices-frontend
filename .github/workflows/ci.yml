@@ -237,6 +237,8 @@ jobs:
         run: npm ci
 
       - name: Build app
+        env:
+          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
         run: npm run build
 
       - name: Record current gh-pages HEAD (for rollback)
@@ -259,6 +261,84 @@ jobs:
           npx --yes gh-pages -d build -b gh-pages \
             -r https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git \
             -u "github-actions <github-actions@github.com>"
+
+      - name: Get deployed commit SHA
+        id: get-sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYED_SHA=$(git ls-remote --heads origin gh-pages | awk '{print $1}' | head -n1)
+          echo "DEPLOYED_SHA=$DEPLOYED_SHA" >> "$GITHUB_OUTPUT"
+          echo "Deployed commit SHA: $DEPLOYED_SHA"
+
+      - name: Wait for GitHub Pages deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEPLOYED_SHA="${{ steps.get-sha.outputs.DEPLOYED_SHA }}"
+          URL="https://phutruonnttn.github.io/yushan-microservices-frontend/"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          echo "Waiting for GitHub Pages to deploy commit $DEPLOYED_SHA..."
+          echo "Verifying that the latest deployment matches our commit..."
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking GitHub Pages deployment..."
+            
+            # Step 1: Verify gh-pages branch has our commit SHA
+            CURRENT_GHPAGES_SHA=$(git ls-remote --heads origin gh-pages | awk '{print $1}' | head -n1 || echo "")
+            
+            if [ -z "$CURRENT_GHPAGES_SHA" ] || [ "$CURRENT_GHPAGES_SHA" != "$DEPLOYED_SHA" ]; then
+              echo "gh-pages branch SHA ($CURRENT_GHPAGES_SHA) doesn't match deployed SHA ($DEPLOYED_SHA), waiting..."
+              sleep 10
+              continue
+            fi
+            
+            echo "✅ gh-pages branch has correct commit SHA: $DEPLOYED_SHA"
+            
+            # Step 2: Check if "pages build and deployment" workflow completed for this commit
+            # Get workflow runs and find the one that matches our commit
+            WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=gh-pages&per_page=10" 2>/dev/null || echo "")
+            
+            if [ -n "$WORKFLOW_RUNS" ]; then
+              # Find workflow run with matching head_sha (commit SHA)
+              MATCHING_RUN=$(echo "$WORKFLOW_RUNS" | grep -B 5 -A 15 "\"head_sha\":\"$DEPLOYED_SHA\"" | head -n 30 || echo "")
+              
+              if [ -n "$MATCHING_RUN" ]; then
+                WORKFLOW_STATUS=$(echo "$MATCHING_RUN" | grep -o '"status":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "unknown")
+                WORKFLOW_CONCLUSION=$(echo "$MATCHING_RUN" | grep -o '"conclusion":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+                
+                if [ "$WORKFLOW_STATUS" = "completed" ] && [ "$WORKFLOW_CONCLUSION" = "success" ]; then
+                  echo "✅ GitHub Pages workflow completed successfully for commit $DEPLOYED_SHA!"
+                  
+                  # Step 3: Final verification - check site is accessible
+                  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
+                  if [ "$HTTP_CODE" = "200" ]; then
+                    echo "✅ Site is accessible!"
+                    echo "✅ Deployment verified and ready!"
+                    exit 0
+                  else
+                    echo "Workflow completed but site not accessible yet (HTTP $HTTP_CODE), waiting..."
+                  fi
+                else
+                  echo "Workflow status: $WORKFLOW_STATUS, conclusion: $WORKFLOW_CONCLUSION (waiting...)"
+                fi
+              else
+                echo "No workflow run found for commit $DEPLOYED_SHA yet, waiting..."
+              fi
+            else
+              echo "Could not fetch workflow runs, waiting..."
+            fi
+            
+            sleep 10
+          done
+
+          echo "⚠️  GitHub Pages deployment check timeout after $MAX_ATTEMPTS attempts"
+          echo "Continuing with health check - it will verify deployment status"
 
       - name: Health check GitHub Pages
         shell: bash
