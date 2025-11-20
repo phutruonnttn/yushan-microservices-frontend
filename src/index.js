@@ -11,6 +11,7 @@ import './utils/axios-interceptor';
 import { App as AntdApp } from 'antd';
 
 // Initialize auth headers if token exists
+// CI trigger: version.txt polling deployment verification
 const token = authService.getToken();
 if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
