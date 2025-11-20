@@ -29,7 +29,11 @@ const Footer = () => {
       href: 'https://github.com/phutruonnttn/yushan-microservices-backend/',
       label: 'Twitter',
     },
-    { icon: <LinkedinOutlined />, href: 'https://www.linkedin.com/in/phutruonnttn/', label: 'LinkedIn' },
+    {
+      icon: <LinkedinOutlined />,
+      href: 'https://www.linkedin.com/in/phutruonnttn/',
+      label: 'LinkedIn',
+    },
     {
       icon: <FacebookOutlined />,
       href: 'https://github.com/phutruonnttn/yushan-microservices-admin-dashboard/',
