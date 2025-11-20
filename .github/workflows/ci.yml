@@ -320,33 +320,52 @@ jobs:
             
             echo "✅ gh-pages branch has correct commit SHA: $DEPLOYED_SHA"
             
-            # Step 2: Check if "pages build and deployment" workflow exists and completed
-            echo "Checking for GitHub Pages workflow..."
+            # Step 2: Verify "pages build and deployment" workflow completed for this commit
+            echo "Checking for GitHub Pages workflow for commit $DEPLOYED_SHA..."
             WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=gh-pages&per_page=5" 2>/dev/null || echo "")
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=gh-pages&per_page=10" 2>/dev/null || echo "")
             
+            WORKFLOW_COMPLETED=false
             if [ -n "$WORKFLOW_RUNS" ]; then
-              # Check if there's a "pages build and deployment" workflow
-              if echo "$WORKFLOW_RUNS" | grep -q "pages build and deployment"; then
-                echo "✅ Found 'pages build and deployment' workflow"
-                # Try to find the latest one
-                PAGES_RUN=$(echo "$WORKFLOW_RUNS" | grep -B 10 "pages build and deployment" | head -n 20 || echo "")
-                if [ -n "$PAGES_RUN" ]; then
-                  STATUS=$(echo "$PAGES_RUN" | grep -o '"status":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
-                  CONCLUSION=$(echo "$PAGES_RUN" | grep -o '"conclusion":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+              # Find workflow run with matching head_sha (commit SHA on gh-pages branch)
+              # The workflow run's head_sha should match our DEPLOYED_SHA
+              MATCHING_RUN=$(echo "$WORKFLOW_RUNS" | grep -B 5 -A 20 "\"head_sha\":\"$DEPLOYED_SHA\"" | head -n 40 || echo "")
+              
+              if [ -n "$MATCHING_RUN" ]; then
+                # Check if it's "pages build and deployment" workflow
+                if echo "$MATCHING_RUN" | grep -q "pages build and deployment"; then
+                  STATUS=$(echo "$MATCHING_RUN" | grep -o '"status":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+                  CONCLUSION=$(echo "$MATCHING_RUN" | grep -o '"conclusion":"[^"]*"' | head -n1 | cut -d'"' -f4 || echo "")
+                  
+                  echo "  Found workflow for commit $DEPLOYED_SHA"
                   echo "  Status: $STATUS, Conclusion: $CONCLUSION"
+                  
+                  if [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "success" ]; then
+                    WORKFLOW_COMPLETED=true
+                    echo "✅ GitHub Pages workflow completed successfully for commit $DEPLOYED_SHA!"
+                  else
+                    echo "  Workflow not completed yet (status: $STATUS, conclusion: $CONCLUSION), waiting..."
+                  fi
+                else
+                  echo "  Found workflow run but not 'pages build and deployment', waiting..."
                 fi
               else
-                echo "ℹ️  'pages build and deployment' workflow not found (this is normal if Pages uses GitHub Actions)"
+                echo "  No workflow run found for commit $DEPLOYED_SHA yet, waiting..."
               fi
+            else
+              echo "  Could not fetch workflow runs, waiting..."
             fi
             
-            # Step 3: Wait a bit for GitHub Pages to process the new commit
-            echo "Waiting for GitHub Pages to process the deployment..."
-            sleep 15
+            # Step 3: Only proceed if workflow completed
+            if [ "$WORKFLOW_COMPLETED" = "false" ]; then
+              echo "Workflow not completed yet, waiting..."
+              sleep 10
+              continue
+            fi
             
-            # Step 3: Check if site is accessible and has valid content
+            # Step 4: Final verification - check site is accessible (after workflow completed)
+            echo "Workflow completed, verifying site is accessible..."
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
             
             if [ "$HTTP_CODE" = "200" ]; then
@@ -498,12 +517,24 @@ jobs:
 
       - name: OWASP ZAP Baseline (scan GitHub Pages)
         run: |
-          docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
+          docker run --rm -v $(pwd):/zap/wrk/:rw -w /zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t "https://phutruonnttn.github.io/yushan-microservices-frontend/" \
-            -J zap.json -w zap.md -r zap.html -a || true
+            -J /zap/wrk/zap.json -w /zap/wrk/zap.md -r /zap/wrk/zap.html -a || true
+          
+          # Verify files were created
+          if [ -f zap.html ] && [ -f zap.json ] && [ -f zap.md ]; then
+            echo "✅ ZAP reports generated successfully"
+            ls -lh zap.*
+          else
+            echo "⚠️  ZAP reports not found. Files present:"
+            ls -la zap.* 2>/dev/null || echo "No zap files found"
+            echo "Current directory: $(pwd)"
+            echo "All files in current directory:"
+            ls -la
+          fi
 
       - name: Upload ZAP report
-        if: always()
+        if: always() && (hashFiles('zap.html') != '' || hashFiles('zap.json') != '' || hashFiles('zap.md') != '')
         uses: actions/upload-artifact@v4
         with:
           name: zap-baseline
@@ -511,6 +542,7 @@ jobs:
             zap.html
             zap.json
             zap.md
+          if-no-files-found: ignore
 
   reports-summary:
     name: Generate CI Summary & Collect Reports
