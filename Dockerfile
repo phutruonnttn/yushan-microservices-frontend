@@ -15,7 +15,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.29.4-alpine AS runtime
 
 # Copy custom nginx config
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
